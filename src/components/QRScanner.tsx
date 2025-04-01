@@ -1,7 +1,8 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
-// Import ScannerService, CameraManager, and types
-import { ScannerService, ScannerOptions, CameraManager } from 'qr-scanner-library';
-import { remoteLog, LogLevel } from '../utils/remoteLog'; // Import LogLevel enum
+// Import ScannerService, CameraManager, ScannerOptions, and LogLevel from the library
+import { ScannerService, ScannerOptions, CameraManager, LogLevel } from 'qr-scanner-library';
+// Import only the remoteLog function from utils
+import { remoteLog } from '../utils/remoteLog';
 
 const QRScanner: React.FC = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -17,66 +18,35 @@ const QRScanner: React.FC = () => {
 
   // Effect to fetch devices and trigger permissions on mount
   useEffect(() => {
-    const loadDevicesAndTriggerPermissions = async () => {
-        remoteLog('Client', LogLevel.INFO, 'QRScanner', "Initializing camera access and fetching devices...");
-        setIsLoadingCameras(true);
-        setError(null);
-        let finalVideoDevices: MediaDeviceInfo[] = [];
-
-        try {
-            // 1. Initial listDevices (might have generic labels)
-            const initialDevices = await CameraManager.listDevices();
-            remoteLog('Client', LogLevel.INFO, 'QRScanner', `Initial device check found: ${initialDevices.length}`);
-
-            // 2. Attempt brief getUserMedia to trigger permission prompt & potentially unlock better labels
-            if (initialDevices.length > 0) {
-                remoteLog('Client', LogLevel.INFO, 'QRScanner', "Attempting brief getUserMedia to trigger permissions/labels...");
-                let tempStream: MediaStream | null = null;
-                try {
-                    // Use minimal constraints
-                    tempStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-                    remoteLog('Client', LogLevel.INFO, 'QRScanner', "Temporary getUserMedia call successful.");
-                    // Immediately stop the temporary stream
-                    tempStream.getTracks().forEach(track => track.stop());
-                    remoteLog('Client', LogLevel.INFO, 'QRScanner', "Temporary stream stopped.");
-                } catch (permissionError) {
-                    remoteLog('Client', LogLevel.WARN, 'QRScanner', `Temporary getUserMedia call failed (may be expected if permission denied)`, permissionError);
-                    // Don't throw, let the final listDevices call handle the state
-                }
-            } else {
-                 remoteLog('Client', LogLevel.INFO, 'QRScanner', "Skipping temporary getUserMedia call as no initial devices found.");
-            }
-
-            // 3. Final listDevices call (should have permission and potentially better labels now)
-            remoteLog('Client', LogLevel.INFO, 'QRScanner', "Fetching final device list...");
-            finalVideoDevices = await CameraManager.listDevices();
-            remoteLog('Client', LogLevel.INFO, 'QRScanner', `Final device list found: ${finalVideoDevices.length}`);
-            // remoteLog('Client', LogLevel.DEBUG, 'QRScanner', "Final raw videoDevices array", finalVideoDevices); // Keep DEBUG log commented
-
-            setDevices(finalVideoDevices);
-
-            // Select the first device by default
-            if (finalVideoDevices.length > 0) {
-                const firstDeviceId = finalVideoDevices[0].deviceId;
-                remoteLog('Client', LogLevel.INFO, 'QRScanner', `Selecting first deviceId from final list: '${firstDeviceId}'`);
-                setSelectedDeviceId(firstDeviceId);
-            } else {
-                remoteLog('Client', LogLevel.INFO, 'QRScanner', "No video devices found in final list.");
-                setSelectedDeviceId(''); // Ensure selection is empty if no devices
-            }
-
-        } catch (err) {
-            remoteLog('Client', LogLevel.ERROR, 'QRScanner', `Error during device loading sequence`, err);
-            setError(`Failed to initialize cameras: ${err instanceof Error ? err.message : String(err)}`);
-            setDevices([]);
-            setSelectedDeviceId(''); // Ensure selection is cleared on error
-        } finally {
-            setIsLoadingCameras(false);
-            remoteLog('Client', LogLevel.INFO, 'QRScanner', "Finished device loading sequence.");
+    // Fetch devices on mount (single call)
+    remoteLog('Client', LogLevel.INFO, 'QRScanner', "Fetching camera devices...");
+    setIsLoadingCameras(true);
+    CameraManager.listDevices()
+      .then(videoDevices => {
+        remoteLog('Client', LogLevel.INFO, 'QRScanner', `Devices found: ${videoDevices.length}`);
+        // remoteLog('Client', LogLevel.DEBUG, 'QRScanner', "Raw videoDevices array", videoDevices); // Keep DEBUG commented
+        setDevices(videoDevices);
+        // Automatically select the first camera if available
+        if (videoDevices.length > 0) {
+            const firstDeviceId = videoDevices[0].deviceId;
+            remoteLog('Client', LogLevel.INFO, 'QRScanner', `Selecting first deviceId: '${firstDeviceId}'`);
+            setSelectedDeviceId(firstDeviceId);
+        } else {
+            remoteLog('Client', LogLevel.INFO, 'QRScanner', "No video devices found.");
+            setSelectedDeviceId(''); // Ensure selection is empty if no devices
         }
-    };
-
-    loadDevicesAndTriggerPermissions();
+        setError(null); // Clear previous errors
+      })
+      .catch(err => {
+        remoteLog('Client', LogLevel.ERROR, 'QRScanner', `Error listing devices`, err);
+        setError(`Failed to list cameras: ${err instanceof Error ? err.message : String(err)}`);
+        setDevices([]); // Ensure devices list is empty on error
+        setSelectedDeviceId(''); // Ensure selection is cleared on error
+      })
+      .finally(() => {
+        setIsLoadingCameras(false);
+        remoteLog('Client', LogLevel.INFO, 'QRScanner', "Finished loading cameras.");
+      });
 
     // Cleanup effect to stop scanner on unmount
     return () => {
@@ -154,7 +124,8 @@ const QRScanner: React.FC = () => {
       onScanSuccess: handleScanSuccess,
       onError: handleError,
       // stopOnScan: false, // Optional: Keep scanning after first result
-      logger: (source, level, message, data) => remoteLog(source, level as LogLevel, 'ScannerService', message, data) // Pass logger, casting level
+      // Pass remoteLog directly. Its signature now matches LoggerCallback.
+      logger: remoteLog
     };
 
     try {
@@ -214,7 +185,7 @@ const QRScanner: React.FC = () => {
           {!isLoadingCameras && devices.length === 0 && <option>No cameras found</option>}
           {devices.map(device => (
             <option key={device.deviceId} value={device.deviceId}>
-              {device.label || `Camera ${device.deviceId.substring(0, 6)}`}
+              {device.label || `Camera`} {/* Display generic 'Camera' if no label */}
             </option>
           ))}
         </select>

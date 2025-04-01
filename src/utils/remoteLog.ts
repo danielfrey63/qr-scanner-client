@@ -1,10 +1,6 @@
-// Log Levels Enum
-export enum LogLevel {
-  INFO = 'INFO',
-  WARN = 'WARN',
-  ERROR = 'ERROR',
-  DEBUG = 'DEBUG',
-}
+// Import LogLevel directly from the library package
+import { LogLevel } from 'qr-scanner-library';
+export { LogLevel };
 
 // Session-based client ID generation
 const getClientId = (): string => {
@@ -14,7 +10,7 @@ const getClientId = (): string => {
     try {
       sessionStorage.setItem('clientId', clientId);
     } catch (e) {
-      console.error("Session storage unavailable for client ID persistence.", e); // Keep console for this critical setup error
+      console.error("Session storage unavailable for client ID persistence.", e);
     }
   }
   return clientId;
@@ -28,7 +24,7 @@ const CLIENT_ID = getClientId();
  * Also logs formatted message to the local console.
  *
  * @param source The source ('Client' or 'Lib').
- * @param level The log level (using LogLevel enum).
+ * @param level The log level (using LogLevel enum imported from library).
  * @param component The component/module name (e.g., 'QRScanner', 'ScannerService').
  * @param message The main log message string.
  * @param data Optional additional data (will be stringified).
