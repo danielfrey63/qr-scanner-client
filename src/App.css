@@ -40,3 +40,105 @@
 .read-the-docs {
   color: #888;
 }
+
+/* --- Adopted CTA styles (inspired by openerp-scanner) --- */
+
+/* Base button style */
+button {
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  padding: 10px 14px;
+  margin: 10px auto;
+}
+
+/* Default button style */
+button.default {
+  background-color: #e0e0e0;
+  color: #121212;
+  transition: background-color 0.2s, transform 0.2s;
+}
+
+button.default:hover {
+  background-color: hsl(0, 0%, 80%);
+  transform: scale(1.1);
+}
+
+/* Secondary (dark) button style - applies when no .default class present */
+button:not(.default) {
+  background-color: #1e1e1e;
+  color: #e0e0e0;
+}
+
+button:not(.default):hover {
+  background-color: #2c2c2c;
+  transform: scale(1.1);
+}
+
+/* Icon button layout */
+.icon-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 10px;
+  margin: 0;
+}
+
+.icon-button img,
+.icon-button svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* Disabled styles */
+button:disabled,
+button.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  filter: grayscale(100%);
+  box-shadow: none;
+}
+
+button:disabled:hover,
+button.disabled:hover {
+  transform: none !important;
+}
+
+/* Ensure white icons on dark buttons */
+button.icon-button:not(.default) img,
+button.icon-button:not(.default) svg {
+  filter: brightness(0) invert(1);
+}
+
+/* Action buttons container */
+.action-buttons {
+  display: flex;
+  gap: 10px;
+  margin-left: 10px;
+  justify-content: center;
+}
+
+/* Controls row: place dropdown and button side-by-side */
+.controls-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 10px auto;
+  flex-wrap: wrap;
+}
+
+/* Larger camera select styling */
+.camera-select {
+  font-size: 18px;
+  padding: 10px 12px;
+  border-radius: 8px;
+}
+
+@media (max-width: 600px) {
+  .camera-select {
+    font-size: 20px;
+  }
+}

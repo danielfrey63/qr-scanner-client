@@ -1,54 +1,91 @@
-# React + TypeScript + Vite
+# QR Scanner Client (React + Vite)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Ein React/Vite-Frontend zum Scannen von QR-/Barcodes im Browser. Es nutzt zwei interne Bibliotheken:
 
-Currently, two official plugins are available:
+- `qr-scanner-library` — Kamerazugriff und Decoding-Loop (TypeScript, jsQR)
+- `remote-debug-screenshot` — schwebender Button für Debug-Screenshots
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Der Client unterstützt Kameraauswahl, kontinuierliches Scannen (kein Auto-Stop) und UI-CTAs im Stil von „openerp-scanner“.
 
-## Expanding the ESLint configuration
+## Voraussetzungen
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- Node.js ≥ 18
+- Moderne Browser mit MediaDevices API (getUserMedia)
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+## Install & Start (Registry-Versionen)
+
+```bash
+# Abhängigkeiten installieren
+npm install
+
+# Dev-Server starten (mit HTTPS-Host-Einstellungen aus Vite-Script)
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Lokale Entwicklung mit den Bibliotheken (npm link)
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Wenn du die Bibliotheken im Monorepo lokal entwickeln willst, ohne sie ständig zu veröffentlichen, nutze `npm link`.
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
+1) In jeder Bibliothek bauen und verlinken:
+
+```bash
+# Im Ordner: ../qr-scanner-library
+npm install
+npm run link:pkg     # baut und npm link
+
+# Im Ordner: ../remote-debug-screenshot
+npm install
+npm run link:pkg     # baut und npm link
 ```
+
+2) Im Client verlinken und starten:
+
+```bash
+# Im Ordner: ./qr-scanner-client
+npm install
+npm run link:dev     # npm link qr-scanner-library && npm link remote-debug-screenshot
+npm run dev
+```
+
+3) Zurück zur Registry-Version (z. B. für CI/Deployment):
+
+```bash
+# Im Ordner: ./qr-scanner-client
+npm run unlink:dev   # entfernt Links und installiert Registry-Versionen
+```
+
+Hinweis: Nach Änderungen an den Bibliotheken genügt i. d. R. ein erneuter Build (oder Watch). Der Symlink verweist weiterhin auf den gleichen Paketordner – ein erneutes "link" ist nicht nötig. Der Dev-Server sollte Änderungen automatisch erkennen, ggf. neu starten.
+
+## Deployment-Hinweise
+
+- In `package.json` sind die Bibliotheken auf Registry-Semver gesetzt (z. B. `^1.0.0`).
+- Für CI/Deployment keine Links verwenden – einfach `npm ci` und `npm run build`.
+- Möchtest du lokal beim `npm install` automatisch linken, kannst du optional ein `postinstall` mit Env-Flag einrichten (nicht empfohlen für CI):
+
+```json
+{
+  "scripts": {
+    "postinstall": "node -e \"if (process.env.LINK_LOCAL) { require('child_process').execSync('npm run link:dev', {stdio:'inherit'}); }\""
+  }
+}
+```
+
+Nutzung lokal:
+
+```powershell
+$env:LINK_LOCAL=1; npm install
+```
+
+## Nützliche Skripte
+
+- `npm run dev` — Vite Dev-Server starten
+- `npm run build` — TypeScript build + Vite build
+- `npm run preview` — Gebautes Bundle lokal servieren
+- `npm run link:dev` — Lokale Bibliotheken verlinken
+- `npm run unlink:dev` — Links entfernen und Registry-Install ausführen
+
+## Troubleshooting
+
+- Kein Kamera-Feed: Prüfe Browser-Berechtigungen/HTTPS und ob eine Kamera verfügbar ist.
+- Scan-Performance: `scanInterval` in `QRScanner.tsx` ggf. auf 100ms reduzieren (höhere CPU-Last).
+- Link-Probleme: Nach Bibliotheks-Änderungen `npm run build` in der Bibliothek ausführen; Dev-Server neu starten.

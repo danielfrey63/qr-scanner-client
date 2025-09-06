@@ -7,18 +7,21 @@
     "dev": "vite --host",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "link:dev": "npm link qr-scanner-library && npm link remote-debug-screenshot",
+    "unlink:dev": "npm unlink qr-scanner-library && npm unlink remote-debug-screenshot && npm i"
   },
   "dependencies": {
-    "qr-scanner-library": "file:../qr-scanner-library",
+    "qr-scanner-library": "^1.0.0",
+    "remote-debug-screenshot": "^0.1.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
     "@types/node": "^22.13.15",
-    "@types/react": "^19.0.10",
-    "@types/react-dom": "^19.0.4",
+    "@types/react": "^19.1.12",
+    "@types/react-dom": "^19.1.9",
     "@vitejs/plugin-basic-ssl": "^2.0.0",
     "@vitejs/plugin-react": "^4.3.4",
     "eslint": "^9.21.0",

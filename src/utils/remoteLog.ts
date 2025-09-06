@@ -3,7 +3,7 @@ import { LogLevel } from 'qr-scanner-library';
 export { LogLevel };
 
 // Session-based client ID generation
-const getClientId = (): string => {
+export const getClientId = (): string => {
   let clientId = sessionStorage.getItem('clientId');
   if (!clientId) {
     clientId = `client_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
