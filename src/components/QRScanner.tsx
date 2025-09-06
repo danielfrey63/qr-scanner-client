@@ -10,7 +10,6 @@ import stopIconUrl from '../assets/icons/stop.svg';
 const QRScanner: React.FC = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const scannerServiceRef = useRef<ScannerService | null>(null);
-  const cameraSelectRef = useRef<HTMLSelectElement>(null);
   const hasAutoStartedRef = useRef<boolean>(false);
 
   // Component State
@@ -20,7 +19,6 @@ const QRScanner: React.FC = () => {
   const [isLoadingCameras, setIsLoadingCameras] = useState<boolean>(true);
   const [scanResult, setScanResult] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  // Removed internal screenshot state; handled by DebugScreenshotButton component
 
   // Effect to request camera permission early and populate devices on mount
   useEffect(() => {
@@ -81,8 +79,6 @@ const QRScanner: React.FC = () => {
       }
     };
   }, []);
-
-  // (moved) Auto-start effect placed after handleStartScan declaration
 
   // --- Callbacks for ScannerService ---
   const handleScanSuccess = useCallback((result: string) => {
@@ -228,7 +224,6 @@ const QRScanner: React.FC = () => {
           value={selectedDeviceId}
           onChange={handleDeviceChange}
           disabled={isScanning || isLoadingCameras || devices.length === 0}
-          ref={cameraSelectRef}
           aria-label="Select Camera"
           className="camera-select"
         >
