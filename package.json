@@ -12,7 +12,7 @@
     "unlink:dev": "npm unlink qr-scanner-library && npm unlink remote-debug-screenshot && npm i"
   },
   "dependencies": {
-    "qr-scanner-library": "^1.0.0",
+    "qr-scanner-library": "^1.0.1",
     "remote-debug-screenshot": "^0.1.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
